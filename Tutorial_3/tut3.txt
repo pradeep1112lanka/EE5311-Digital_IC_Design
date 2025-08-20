@@ -1,0 +1,197 @@
+part b,c
+
+v {xschem version=3.4.6 file_version=1.2}
+G {}
+K {}
+V {}
+S {}
+E {}
+N 380 260 380 380 {lab=Vin}
+N 380 260 450 260 {lab=Vin}
+N 560 260 570 260 {lab=Vout}
+N 570 260 660 260 {lab=Vout}
+N 380 440 510 440 {lab=GND}
+N 510 350 510 440 {lab=GND}
+C {code_shown.sym} 850 200 0 0 {name=sim only_toplevel=false value=
+"
+.param VDDval = 1.8 
+.param width_p = 0.84 
+.control 
+let Nsim = 9
+let delayvec =vector(Nsim)
+let vddvec = vector(Nsim) 
+let edpvec = vector(Nsim) 
+let index = 0 
+while index < Nsim 
+	let vddv = 1.0 + (index * 0.1) 
+	let vby2 = vddv/2 
+	alterparam VDDval = $&vddv 
+	reset 
+	tran 1p 600p 
+	meas tran thl trig v(Vin) val=$&vby2 rise=1 targ v(Vout) val=$&vby2 fall=1 
+	meas tran tlh trig v(vin) val=$&vby2 fall=1 targ v(vout) val=$&vby2 rise=1 
+	meas tran iinteg integ i(vmeas) 
+	let delayvec[index] = ($&thl + $&tlh)/2 
+	let vddvec[index] = vddv 
+	let edpvec[index] = $&iinteg * vddv * delayvec[index] 
+	let index = index + 1 
+end 
+plot delayvec vs vddvec 
+plot edpvec vs vddvec 
+.endc 
+"}
+C {sky130_fd_pr/corner.sym} 660 430 0 0 {name=CORNER only_toplevel=false corner=tt}
+C {vsource.sym} 380 550 0 0 {name=Vdd1 value=\{VDDval\} savecurrent=false}
+C {vsource.sym} 380 410 0 0 {name=Vin1 value=PULSE(0\\ \{VDDval\}\\ 0ps\\ 5ps\\ 5ps\\ 300ps\\ 600ps) savecurrnt=false
+}
+C {gnd.sym} 380 440 0 0 {name=l1 lab=GND}
+C {gnd.sym} 380 580 0 0 {name=l3 lab=GND}
+C {vdd.sym} 380 520 0 0 {name=l4 lab=VDD}
+C {lab_pin.sym} 380 380 0 0 {name=p1 sig_type=std_logic lab=Vin}
+C {inverter.sym} 620 260 0 0 {name=x2}
+C {lab_wire.sym} 610 260 1 0 {name=p2 sig_type=std_logic lab=Vout}
+C {lab_wire.sym} 400 260 1 0 {name=p3 sig_type=std_logic lab=Vin
+}
+C {inverter_gnd.sym} 410 260 0 0 {name=x1}
+C {ammeter.sym} 510 320 0 0 {name=Vmeas savecurrent=false spice_ignore=0}
+
+
+
+part a
+
+
+v {xschem version=3.4.6 file_version=1.2}
+G {}
+K {}
+V {}
+S {}
+E {}
+N 380 260 380 380 {lab=Vin}
+N 380 260 450 260 {lab=Vin}
+N 570 260 660 260 {lab=Vout}
+C {code_shown.sym} 620 410 0 0 {name=sim only_toplevel=false value=
+"
+.param width_p = 0.42 
+.control 
+foreach wp 0.42 0.84 1.26 
+	alterparam width_p = $wp 
+	reset 
+	tran 0.1p 250p 
+	plot v(Vout) v(Vin) 
+	meas tran thl trig v(Vin) val=0.9 rise=1 targ v(Vout) val=0.9 fall=1 
+	meas tran tlh trig v(Vin) val=0.9 fall=1 targ v(Vout) val=0.9 rise=1 
+	let delay=($&thl + $&tlh) / 2 
+	echo w : $wp delay : $&delay 
+end 
+.endc 
+"}
+C {sky130_fd_pr/corner.sym} 450 500 0 0 {name=CORNER only_toplevel=false corner=tt}
+C {vsource.sym} 380 550 0 0 {name=Vdd1 value=1.8 savecurrent=false}
+C {vsource.sym} 380 410 0 0 {name=Vin1 value=PULSE(0\\ 1.8\\ 10ps\\ 5ps\\ 5ps\\ 100ps\\ 250ps) savecurrnt=false
+}
+C {gnd.sym} 380 440 0 0 {name=l1 lab=GND}
+C {gnd.sym} 380 580 0 0 {name=l3 lab=GND}
+C {vdd.sym} 380 520 0 0 {name=l4 lab=VDD}
+C {lab_pin.sym} 380 380 0 0 {name=p1 sig_type=std_logic lab=Vin}
+C {inverter.sym} 410 260 0 0 {name=x1}
+C {inverter.sym} 620 260 0 0 {name=x2}
+C {lab_wire.sym} 610 260 1 0 {name=p2 sig_type=std_logic lab=Vout}
+C {lab_wire.sym} 400 260 1 0 {name=p3 sig_type=std_logic lab=Vin
+}
+
+
+inverter
+
+v {xschem version=3.4.6 file_version=1.2}
+G {}
+K {}
+V {}
+S {}
+E {}
+N 360 280 360 340 {lab=out}
+N 280 250 320 250 {lab=in}
+N 280 250 280 370 {lab=in}
+N 280 370 320 370 {lab=in}
+C {ipin.sym} 280 310 0 0 {name=p1 lab=in}
+C {gnd.sym} 360 400 0 0 {name=l1 lab=GND}
+C {opin.sym} 360 310 0 0 {name=p2 lab=out}
+C {vdd.sym} 360 220 0 0 {name=l2 lab=VDD}
+C {sky130_fd_pr/nfet3_01v8.sym} 340 370 0 0 {name=M3
+W=0.42
+L=0.15
+body=GND
+nf=1
+mult=1
+ad="'int((nf+1)/2) * W/nf * 0.29'" 
+pd="'2*int((nf+1)/2) * (W/nf + 0.29)'"
+as="'int((nf+2)/2) * W/nf * 0.29'" 
+ps="'2*int((nf+2)/2) * (W/nf + 0.29)'"
+nrd="'0.29 / W'" nrs="'0.29 / W'"
+sa=0 sb=0 sd=0
+model=nfet_01v8
+spiceprefix=X
+}
+C {sky130_fd_pr/pfet3_01v8.sym} 340 250 0 0 {name=M1
+W=\{width_p\}
+L=0.15
+body=VDD
+nf=1
+mult=1
+ad="'int((nf+1)/2) * W/nf * 0.29'" 
+pd="'2*int((nf+1)/2) * (W/nf + 0.29)'"
+as="'int((nf+2)/2) * W/nf * 0.29'" 
+ps="'2*int((nf+2)/2) * (W/nf + 0.29)'"
+nrd="'0.29 / W'" nrs="'0.29 / W'"
+sa=0 sb=0 sd=0
+model=pfet_01v8
+spiceprefix=X
+}
+
+
+inv with ground
+
+v {xschem version=3.4.6 file_version=1.2}
+G {}
+K {}
+V {}
+S {}
+E {}
+N 360 280 360 340 {lab=out}
+N 280 250 320 250 {lab=in}
+N 280 250 280 370 {lab=in}
+N 280 370 320 370 {lab=in}
+N 360 400 360 430 {lab=xxx}
+C {ipin.sym} 280 310 0 0 {name=p1 lab=in}
+C {opin.sym} 360 310 0 0 {name=p2 lab=out}
+C {vdd.sym} 360 220 0 0 {name=l2 lab=VDD}
+C {sky130_fd_pr/nfet3_01v8.sym} 340 370 0 0 {name=M3
+W=0.42
+L=0.15
+body=GND
+nf=1
+mult=1
+ad="'int((nf+1)/2) * W/nf * 0.29'" 
+pd="'2*int((nf+1)/2) * (W/nf + 0.29)'"
+as="'int((nf+2)/2) * W/nf * 0.29'" 
+ps="'2*int((nf+2)/2) * (W/nf + 0.29)'"
+nrd="'0.29 / W'" nrs="'0.29 / W'"
+sa=0 sb=0 sd=0
+model=nfet_01v8
+spiceprefix=X
+}
+C {sky130_fd_pr/pfet3_01v8.sym} 340 250 0 0 {name=M1
+W=\{width_p\}
+L=0.15
+body=VDD
+nf=1
+mult=1
+ad="'int((nf+1)/2) * W/nf * 0.29'" 
+pd="'2*int((nf+1)/2) * (W/nf + 0.29)'"
+as="'int((nf+2)/2) * W/nf * 0.29'" 
+ps="'2*int((nf+2)/2) * (W/nf + 0.29)'"
+nrd="'0.29 / W'" nrs="'0.29 / W'"
+sa=0 sb=0 sd=0
+model=pfet_01v8
+spiceprefix=X
+}
+C {iopin.sym} 360 430 2 0 {name=p3 lab=Ignd}
